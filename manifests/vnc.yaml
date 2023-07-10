@@ -31,12 +31,6 @@ data:
         proxy_set_header Connection upgrade;
         proxy_set_header Host $http_host;
     }
-    
-    location / {
-        alias /data/;
-        autoindex on;
-        
-    }
 }
 
 ---
