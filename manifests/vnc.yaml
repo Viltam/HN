@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: php
 data:
-  vnc.conf: |
+  nginx.conf: |
     server {
     listen               80 default_server;
     listen               [::]:80 ipv6only=on default_server;
@@ -31,16 +31,14 @@ data:
         proxy_set_header Connection upgrade;
         proxy_set_header Host $http_host;
     }
-	
-	
+    
     location / {
         alias /data/;
         autoindex on;
-
+        
     }
 }
 
-  
 ---
 apiVersion: apps/v1
 kind: Deployment
