@@ -1,0 +1,100 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: vnc-config
+  labels:
+    app.kubernetes.io/instance: php
+data:
+  vnc.conf: |
+server {
+    listen               80 default_server;
+    listen               [::]:80 ipv6only=on default_server;
+
+    server_name         127.0.0.1:808;
+    charset              utf-8;
+    root                 html;
+
+    location /10000 {
+        proxy_redirect off;
+        proxy_pass http://127.0.0.1:10000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection upgrade;
+        proxy_set_header Host $http_host;
+        #proxy_set_header X-Real-IP $remote_addr;
+        #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /20000 {
+        proxy_redirect off;
+        proxy_pass http://127.0.0.1:20000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection upgrade;
+        proxy_set_header Host $http_host;
+        #proxy_set_header X-Real-IP $remote_addr;
+        #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+	
+	
+    location / {
+        alias /data/;
+        autoindex on;
+
+    }
+}
+
+  
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnc
+  labels:
+    app.kubernetes.io/instance: php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vnc
+  template:
+    metadata:
+      labels:
+        app: vnc
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - image: nginx:alpine 
+        imagePullPolicy: Always
+        name: vnc
+        ports:
+        - containerPort: 808
+        volumeMounts:
+        - name: vnc-config
+          mountPath: /etc/nginx/conf.d
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"     
+      # Load the configuration files for nginx
+      volumes:
+        - name: vnc-config
+          configMap:
+            name: vnc-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnc
+spec:
+  type: LoadBalancer  
+  ports:
+  - name: vnc
+    port: 808
+  selector:
+    app: vnc
