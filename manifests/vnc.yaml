@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: php
 data:
-  nginx.conf: |
+  vnc.conf: |
     server {
     listen               80 default_server;
     listen               [::]:80 ipv6only=on default_server;
